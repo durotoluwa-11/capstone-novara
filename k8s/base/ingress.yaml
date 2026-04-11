@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskapp-ingress
+  namespace: taskapp
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  tls:
+    - hosts:
+        - taskapp.durotoluwa-tasked.com
+      secretName: taskapp-frontend-tls
+    - hosts:
+        - api.durotoluwa-tasked.com
+      secretName: taskapp-backend-tls
+  rules:
+    - host: taskapp.durotoluwa-tasked.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: taskapp-frontend
+                port:
+                  number: 80
+    - host: api.durotoluwa-tasked.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: taskapp-backend
+                port:
+                  number: 80
