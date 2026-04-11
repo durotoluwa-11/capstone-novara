@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskapp-backend
+  namespace: taskapp
+  labels:
+    app: taskapp-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: taskapp-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: taskapp-backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: backend
+          image: your-ecr-repo/taskapp-backend:1.0.0
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: DATABASE_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: SECRET_KEY
+            - name: FLASK_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: FLASK_ENV
+            - name: CORS_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CORS_ORIGINS
+          resources:
+            requests:
+              memory: "526Mi"
+              cpu: "250m"
+            limits:
+              memory: "526Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskapp-backend
+  namespace: taskapp
+spec:
+  selector:
+    app: taskapp-backend
+  ports:
+    - port: 80
+      targetPort: 5000
+  type: ClusterIP
