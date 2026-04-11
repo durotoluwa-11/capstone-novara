@@ -1,0 +1,31 @@
+clusterName: taskapp.durotoluwa-tasked.com
+stateStore: s3://durotoluwa-kops-state-store
+dnsZone: durotoluwa-tasked.com
+region: us-east-1
+
+masterCount: 3
+masterMachineType: t3.medium
+
+nodeCount: 3
+nodeMachineType: t3.medium
+
+kubernetesVersion: 1.28.5
+
+vpc:
+  cidr: 10.0.0.0/16
+
+subnets:
+  private:
+    - zone: us-east-1a
+      cidr: 10.0.1.0/24
+    - zone: us-east-1b
+      cidr: 10.0.2.0/24
+    - zone: us-east-1c
+      cidr: 10.0.3.0/24
+  public:
+    - zone: us-east-1a
+      cidr: 10.0.4.0/24
+    - zone: us-east-1b
+      cidr: 10.0.5.0/24
+    - zone: us-east-1c
+      cidr: 10.0.6.0/24
